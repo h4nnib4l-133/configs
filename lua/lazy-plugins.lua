@@ -10,6 +10,8 @@ require("lazy").setup({
 	require("plugins/indentline"),
 	require("plugins/neotree"),
 	require("plugins/leetcode"),
+	require("plugins/noice"),
 	require("plugins/dashboard"),
+	require("plugins/statusline"),
 	require("plugins/debug"),
 })
