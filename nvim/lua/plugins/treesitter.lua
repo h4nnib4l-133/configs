@@ -1,4 +1,4 @@
--- lua/plugins/treesitter.lua - Enhanced with all languages and text objects
+-- lua/plugins/treesitter.lua - Fixed jsx parser and enhanced configuration
 return {
 	{ -- Highlight, edit, and navigate code
 		"nvim-treesitter/nvim-treesitter",
@@ -19,8 +19,8 @@ return {
 				"scss",
 				"javascript",
 				"typescript",
-				"tsx",
-				"jsx",
+				"tsx", -- JSX is handled by tsx parser now
+				-- Removed "jsx" as it's deprecated - JSX syntax is handled by javascript/typescript parsers
 				"json",
 				"jsonc",
 

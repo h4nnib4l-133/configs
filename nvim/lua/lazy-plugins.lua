@@ -1,4 +1,4 @@
--- lua/lazy-plugins.lua - Enhanced with all new plugins
+-- lua/lazy-plugins.lua - Enhanced with all new plugins and fixed which-key spec
 require("lazy").setup({
 	-- Core functionality
 	require("plugins/telescope"),
@@ -372,21 +372,20 @@ require("lazy").setup({
 				},
 			})
 
-			-- Register key groups
-			wk.register({
-				["<leader>"] = {
-					b = { name = "Debug/Breakpoints" },
-					c = { name = "Code" },
-					d = { name = "Document/Debug" },
-					f = { name = "Format" },
-					g = { name = "Git" },
-					h = { name = "Git Hunks" },
-					q = { name = "Session" },
-					r = { name = "Rename" },
-					s = { name = "Search" },
-					t = { name = "Terminal/Toggle" },
-					w = { name = "Workspace" },
-				},
+			-- Register key groups using NEW which-key spec
+			wk.add({
+				{ "<leader>b", group = "Debug/Breakpoints" },
+				{ "<leader>c", group = "Code" },
+				{ "<leader>d", group = "Document/Debug" },
+				{ "<leader>f", group = "Format" },
+				{ "<leader>g", group = "Git" },
+				{ "<leader>h", group = "Git Hunks" },
+				{ "<leader>q", group = "Session" },
+				{ "<leader>r", group = "Rename" },
+				{ "<leader>s", group = "Search" },
+				{ "<leader>sg", group = "Git Search" },
+				{ "<leader>t", group = "Terminal/Toggle" },
+				{ "<leader>w", group = "Workspace" },
 			})
 		end,
 	},

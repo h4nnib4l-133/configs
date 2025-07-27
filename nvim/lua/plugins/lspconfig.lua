@@ -1,4 +1,4 @@
--- lua/plugins/lspconfig.lua - Enhanced for Neovim 0.11 with all languages
+-- lua/plugins/lspconfig.lua - Fixed deprecated LSP servers for Neovim 0.11
 return {
 	{ -- LSP Configuration & Plugins
 		"neovim/nvim-lspconfig",
@@ -82,7 +82,7 @@ return {
 			-- Enable snippet support for HTML/CSS
 			capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-			-- Language server configurations
+			-- Language server configurations with fixed deprecated names
 			local servers = {
 				pyright = {
 					settings = {
@@ -96,7 +96,8 @@ return {
 						},
 					},
 				},
-				ruff_lsp = {
+				-- Fixed: ruff_lsp is deprecated, use ruff instead
+				ruff = {
 					settings = {
 						organizeImports = true,
 						fixAll = true,
@@ -171,13 +172,14 @@ return {
 						},
 					},
 				},
-				tsserver = {
+				-- Fixed: tsserver is deprecated, use ts_ls instead
+				ts_ls = {
 					settings = {
 						typescript = { format = { enable = true } },
 						javascript = { format = { enable = true } },
 					},
 				},
-				taplo = {}, -- TOML language server (you already had this)
+				taplo = {}, -- TOML language server
 			}
 
 			-- Mason setup
