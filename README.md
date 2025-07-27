@@ -1,4 +1,4 @@
-###CONFIGURATION
+### CONFIGURATION
 
 Purpose:
 > Central repos for all of my configs for .... everything
