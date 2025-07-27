@@ -173,14 +173,10 @@ vim.keymap.set("n", "<leader>qd", function()
 end, { desc = "Don't Save Current Session" })
 
 -- ===================================================================
--- MARKDOWN KEYMAPS (Preview + Rendering)
+-- MARKDOWN KEYMAPS (Inline Rendering Only)
 -- ===================================================================
 
--- Markdown preview keymaps
-vim.keymap.set("n", "<leader>mp", "<cmd>MarkdownPreviewToggle<CR>", { desc = "[M]arkdown [P]review toggle" })
-vim.keymap.set("n", "<leader>ms", "<cmd>MarkdownPreviewStop<CR>", { desc = "[M]arkdown preview [S]top" })
-
--- Render markdown keymaps
+-- Inline markdown rendering keymaps
 vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<CR>", { desc = "[M]arkdown [R]ender toggle" })
 vim.keymap.set("n", "<leader>me", "<cmd>RenderMarkdown enable<CR>", { desc = "[M]arkdown render [E]nable" })
 vim.keymap.set("n", "<leader>md", "<cmd>RenderMarkdown disable<CR>", { desc = "[M]arkdown render [D]isable" })

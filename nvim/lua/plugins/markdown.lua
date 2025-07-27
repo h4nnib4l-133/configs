@@ -1,46 +1,5 @@
+-- lua/plugins/markdown.lua - Inline markdown rendering only
 return {
-	{
-		-- Live markdown preview in browser
-		"iamcco/markdown-preview.nvim",
-		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-		ft = { "markdown" },
-		build = function()
-			vim.fn["mkdp#util#install"]()
-		end,
-		config = function()
-			-- Configuration for markdown-preview
-			vim.g.mkdp_auto_start = 0 -- Don't auto-start preview
-			vim.g.mkdp_auto_close = 1 -- Auto-close preview when leaving markdown buffer
-			vim.g.mkdp_refresh_slow = 0 -- Fast refresh
-			vim.g.mkdp_command_for_global = 0 -- Only available in markdown files
-			vim.g.mkdp_open_to_the_world = 0 -- Don't make server available to others on network
-			vim.g.mkdp_open_ip = "127.0.0.1"
-			vim.g.mkdp_port = "8080"
-			vim.g.mkdp_browser = "" -- Use system default browser
-			vim.g.mkdp_echo_preview_url = 1 -- Echo preview URL
-			vim.g.mkdp_browserfunc = ""
-			vim.g.mkdp_preview_options = {
-				mkit = {},
-				katex = {},
-				uml = {},
-				maid = {},
-				disable_sync_scroll = 0,
-				sync_scroll_type = "middle",
-				hide_yaml_meta = 1,
-				sequence_diagrams = {},
-				flowchart_diagrams = {},
-				content_editable = false,
-				disable_filename = 0,
-				toc = {},
-			}
-			vim.g.mkdp_markdown_css = ""
-			vim.g.mkdp_highlight_css = ""
-			vim.g.mkdp_theme = "dark" -- Use dark theme
-
-			-- Markdown keymaps are in main keymaps.lua
-		end,
-	},
-
 	{
 		-- Inline markdown rendering in buffer
 		"MeanderingProgrammer/render-markdown.nvim",
@@ -98,33 +57,32 @@ return {
 					--  none: adds no formatting
 					--  normal: adds padding to the table
 					--  full: normal + a top & bottom border
-					style = "full",
+					style = "normal", -- Changed from "full" to "normal"
 					-- Amount of space to put between cell contents and border
 					cell_margin = 1,
 					-- Minimum column width, affects both alignment and min width
 					min_width = 0,
-					-- Characters used to replace table border
-					-- Correspond to top(3), delimiter(3), bottom(3), vertical, & corner characters
+					-- Simpler ASCII characters that work everywhere
 					border = {
-						-- ┌─┬┐
-						"┌",
-						"─",
-						"┬",
-						"┐",
-						-- ├─┼┤
-						"├",
-						"─",
-						"┼",
-						"┤",
-						-- └─┴┘
-						"└",
-						"─",
-						"┴",
-						"┘",
-						-- │
-						"│",
-						-- ┼
-						"┼",
+						-- Top border: +---+
+						"+",
+						"-",
+						"+",
+						"+",
+						-- Middle border: +---+
+						"+",
+						"-",
+						"+",
+						"+",
+						-- Bottom border: +---+
+						"+",
+						"-",
+						"+",
+						"+",
+						-- Vertical: |
+						"|",
+						-- Corner: +
+						"+",
 					},
 					-- Highlight for table heading, delimiter, and the line above
 					head = "RenderMarkdownTableHead",
@@ -134,8 +92,6 @@ return {
 					filler = "RenderMarkdownTableFill",
 				},
 			})
-
-			-- Markdown keymaps are loaded in the preview plugin config above
 		end,
 	},
 }
