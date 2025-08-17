@@ -1,6 +1,6 @@
 -- lua/lazy-plugins.lua - Clean plugin configurations without keymaps
 require("lazy").setup({
-	-- Core functionality
+	-- Core functionality  
 	require("plugins/telescope"),
 	require("plugins/lspconfig"),
 	require("plugins/cmp"),
@@ -32,6 +32,9 @@ require("lazy").setup({
 	require("plugins/editing"),
 	require("plugins/sessions"),
 	require("plugins/ui-enhancements"),
+
+	-- AI Integration
+	require("plugins/claudecode"),
 
 	-- Fun/extras
 	require("plugins/leetcode"),

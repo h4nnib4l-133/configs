@@ -1,217 +1,204 @@
--- lua/plugins/lspconfig.lua - Fixed deprecated LSP servers for Neovim 0.11
+-- lua/plugins/lspconfig.lua - Pure native Neovim 0.11 LSP (no Mason)
 return {
-	{ -- LSP Configuration & Plugins
-		"neovim/nvim-lspconfig",
-		dependencies = {
-			{ "williamboman/mason.nvim", config = true },
-			"williamboman/mason-lspconfig.nvim",
-			"WhoIsSethDaniel/mason-tool-installer.nvim",
-			{ "j-hui/fidget.nvim", opts = {} },
-			{ "folke/neodev.nvim", opts = {} },
-		},
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = {
+      { "j-hui/fidget.nvim", opts = {} },
+    },
+    config = function()
+      -- Native Neovim 0.11 LSP capabilities
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+      
+      -- Enhanced snippet support
+      capabilities.textDocument.completion.completionItem.snippetSupport = true
+      capabilities.textDocument.completion.completionItem.resolveSupport = {
+        properties = { "documentation", "detail", "additionalTextEdits" }
+      }
 
-		config = function()
-			-- LspAttach autocommand for keymaps and features
-			vim.api.nvim_create_autocmd("LspAttach", {
-				group = vim.api.nvim_create_augroup("kickstart-lsp-attach", { clear = true }),
-				callback = function(event)
-					local map = function(keys, func, desc)
-						vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
-					end
+      -- LSP attach configuration
+      vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
+        callback = function(event)
+          local map = function(keys, func, desc, mode)
+            mode = mode or "n"
+            vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+          end
 
-					-- Navigation
-					map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
-					map("gr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
-					map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
-					map("<leader>D", require("telescope.builtin").lsp_type_definitions, "Type [D]efinition")
-					map("<leader>ds", require("telescope.builtin").lsp_document_symbols, "[D]ocument [S]ymbols")
-					map(
-						"<leader>ws",
-						require("telescope.builtin").lsp_dynamic_workspace_symbols,
-						"[W]orkspace [S]ymbols"
-					)
+          -- Navigation
+          map("gd", vim.lsp.buf.definition, "[G]oto [D]efinition")
+          map("gr", vim.lsp.buf.references, "[G]oto [R]eferences")
+          map("gI", vim.lsp.buf.implementation, "[G]oto [I]mplementation")
+          map("<leader>D", vim.lsp.buf.type_definition, "Type [D]efinition")
+          map("<leader>ds", vim.lsp.buf.document_symbol, "[D]ocument [S]ymbols")
+          map("<leader>ws", vim.lsp.buf.workspace_symbol, "[W]orkspace [S]ymbols")
 
-					-- Actions
-					map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
-					map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
-					map("K", vim.lsp.buf.hover, "Hover Documentation")
-					map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
+          -- Actions
+          map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
+          map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
+          map("K", vim.lsp.buf.hover, "Hover Documentation")
+          map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
-					-- Enhanced Python-specific mappings
-					local client = vim.lsp.get_client_by_id(event.data.client_id)
-					if client and client.name == "pyright" then
-						map("<leader>oi", function()
-							vim.lsp.buf.execute_command({
-								command = "pyright.organizeimports",
-								arguments = { vim.uri_from_bufnr(0) },
-							})
-						end, "[O]rganize [I]mports")
-					end
+          -- Diagnostics
+          map("<leader>e", vim.diagnostic.open_float, "Show diagnostic [E]rror")
+          map("[d", vim.diagnostic.goto_prev, "Previous [D]iagnostic")
+          map("]d", vim.diagnostic.goto_next, "Next [D]iagnostic")
+          map("<leader>q", vim.diagnostic.setloclist, "Diagnostic [Q]uickfix list")
 
-					-- Document highlighting
-					if client and client.server_capabilities.documentHighlightProvider then
-						local highlight_augroup =
-							vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
-						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-							buffer = event.buf,
-							group = highlight_augroup,
-							callback = vim.lsp.buf.document_highlight,
-						})
+          -- Document highlighting for Neovim 0.11
+          local client = vim.lsp.get_client_by_id(event.data.client_id)
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+            local highlight_augroup = vim.api.nvim_create_augroup("lsp-highlight", { clear = false })
+            vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+              buffer = event.buf,
+              group = highlight_augroup,
+              callback = vim.lsp.buf.document_highlight,
+            })
 
-						vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-							buffer = event.buf,
-							group = highlight_augroup,
-							callback = vim.lsp.buf.clear_references,
-						})
+            vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+              buffer = event.buf,
+              group = highlight_augroup,
+              callback = vim.lsp.buf.clear_references,
+            })
 
-						vim.api.nvim_create_autocmd("LspDetach", {
-							group = vim.api.nvim_create_augroup("kickstart-lsp-detach", { clear = true }),
-							callback = function(event2)
-								vim.lsp.buf.clear_references()
-								vim.api.nvim_clear_autocmds({ group = "kickstart-lsp-highlight", buffer = event2.buf })
-							end,
-						})
-					end
-				end,
-			})
+            vim.api.nvim_create_autocmd("LspDetach", {
+              group = vim.api.nvim_create_augroup("lsp-detach", { clear = true }),
+              callback = function(event2)
+                vim.lsp.buf.clear_references()
+                vim.api.nvim_clear_autocmds({ group = "lsp-highlight", buffer = event2.buf })
+              end,
+            })
+          end
 
-			-- Enhanced capabilities for completion
-			local capabilities = vim.lsp.protocol.make_client_capabilities()
-			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+          -- Inlay hints for Neovim 0.11 (if supported)
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+            map("<leader>th", function()
+              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }), { bufnr = event.buf })
+            end, "[T]oggle Inlay [H]ints")
+          end
+        end,
+      })
 
-			-- Enable snippet support for HTML/CSS
-			capabilities.textDocument.completion.completionItem.snippetSupport = true
+      -- Enhanced diagnostic configuration for 0.11
+      vim.diagnostic.config({
+        underline = true,
+        update_in_insert = false,
+        virtual_text = {
+          spacing = 4,
+          source = "if_many",
+          prefix = "●",
+        },
+        severity_sort = true,
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "✘",
+            [vim.diagnostic.severity.WARN] = "▲",
+            [vim.diagnostic.severity.HINT] = "⚑",
+            [vim.diagnostic.severity.INFO] = "»",
+          },
+        },
+      })
 
-			-- Language server configurations with fixed deprecated names
-			local servers = {
-				pyright = {
-					settings = {
-						python = {
-							analysis = {
-								autoSearchPaths = true,
-								useLibraryCodeForTypes = true,
-								diagnosticMode = "workspace",
-								typeCheckingMode = "basic",
-							},
-						},
-					},
-				},
-				-- Fixed: ruff_lsp is deprecated, use ruff instead
-				ruff = {
-					settings = {
-						organizeImports = true,
-						fixAll = true,
-					},
-				},
-				lua_ls = {
-					settings = {
-						Lua = {
-							runtime = { version = "LuaJIT" },
-							workspace = {
-								checkThirdParty = false,
-								library = {
-									vim.env.VIMRUNTIME,
-									"${3rd}/luv/library",
-									"${3rd}/busted/library",
-								},
-							},
-							completion = { callSnippet = "Replace" },
-							telemetry = { enable = false },
-						},
-					},
-				},
-				bashls = {
-					settings = {
-						bashIde = {
-							globPattern = "*@(.sh|.inc|.bash|.command)",
-						},
-					},
-				},
-				dockerls = {},
-				yamlls = {
-					settings = {
-						yaml = {
-							schemas = {
-								["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
-								["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = {
-									"docker-compose*.{yml,yaml}",
-									"compose*.{yml,yaml}",
-								},
-							},
-							validate = true,
-							completion = true,
-							hover = true,
-						},
-					},
-				},
-				html = {
-					settings = {
-						html = {
-							format = { enable = true },
-							hover = {
-								documentation = true,
-								references = true,
-							},
-						},
-					},
-				},
-				cssls = {
-					settings = {
-						css = { validate = true },
-						scss = { validate = true },
-						less = { validate = true },
-					},
-				},
-				emmet_ls = {
-					settings = {
-						emmet = {
-							includeLanguages = {
-								javascript = "javascriptreact",
-								typescript = "typescriptreact",
-							},
-						},
-					},
-				},
-				-- Fixed: tsserver is deprecated, use ts_ls instead
-				ts_ls = {
-					settings = {
-						typescript = { format = { enable = true } },
-						javascript = { format = { enable = true } },
-					},
-				},
-				taplo = {}, -- TOML language server
-			}
+      -- Direct LSP server setup (no Mason)
+      local lspconfig = require("lspconfig")
 
-			-- Mason setup
-			require("mason").setup()
+      -- Lua LSP
+      lspconfig.lua_ls.setup({
+        capabilities = capabilities,
+        settings = {
+          Lua = {
+            completion = { callSnippet = "Replace" },
+            diagnostics = { globals = { "vim" } },
+            workspace = {
+              checkThirdParty = false,
+              library = { vim.env.VIMRUNTIME, "${3rd}/luv/library" },
+            },
+            telemetry = { enable = false },
+            hint = { enable = true },
+          },
+        },
+      })
 
-			-- Install language servers and tools
-			local ensure_installed = vim.tbl_keys(servers or {})
-			vim.list_extend(ensure_installed, {
-				-- Formatters
-				"stylua",
-				"isort",
-				"black",
-				"shfmt",
-				"prettier",
-				-- Linters
-				"shellcheck",
-				"hadolint",
-				-- Debug adapters
-				"debugpy",
-			})
-			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+      -- Python LSP (requires: pip install basedpyright)
+      lspconfig.basedpyright.setup({
+        capabilities = capabilities,
+        settings = {
+          basedpyright = {
+            analysis = {
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = "openFilesOnly",
+              typeCheckingMode = "standard",
+            },
+          },
+        },
+      })
 
-			-- Mason-LSPConfig setup (compatible with Mason 2.0 and Neovim 0.11)
-			require("mason-lspconfig").setup({
-				ensure_installed = vim.tbl_keys(servers),
-			})
+      -- Ruff for Python linting (requires: pip install ruff-lsp)
+      lspconfig.ruff.setup({
+        capabilities = capabilities,
+        init_options = {
+          settings = {
+            organizeImports = true,
+            fixAll = true,
+          },
+        },
+      })
 
-			-- Configure each server
-			for server_name, config in pairs(servers) do
-				config.capabilities = vim.tbl_deep_extend("force", {}, capabilities, config.capabilities or {})
-				require("lspconfig")[server_name].setup(config)
-			end
-		end,
-	},
+      -- TypeScript/JavaScript (requires: npm install -g typescript-language-server)
+      lspconfig.ts_ls.setup({
+        capabilities = capabilities,
+        settings = {
+          typescript = {
+            inlayHints = {
+              includeInlayParameterNameHints = "all",
+              includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+              includeInlayFunctionParameterTypeHints = true,
+              includeInlayVariableTypeHints = true,
+            },
+          },
+        },
+      })
+
+      -- HTML/CSS (requires: npm install -g vscode-langservers-extracted)
+      lspconfig.html.setup({ capabilities = capabilities })
+      lspconfig.cssls.setup({ capabilities = capabilities })
+      
+      -- JSON (requires: npm install -g vscode-langservers-extracted)
+      lspconfig.jsonls.setup({
+        capabilities = capabilities,
+        settings = {
+          json = {
+            schemas = require("schemastore").json.schemas(),
+            validate = { enable = true },
+          },
+        },
+      })
+
+      -- Bash (requires: npm install -g bash-language-server)
+      lspconfig.bashls.setup({ capabilities = capabilities })
+
+      -- Docker (requires: npm install -g dockerfile-language-server-nodejs)
+      lspconfig.dockerls.setup({ capabilities = capabilities })
+
+      -- YAML (requires: npm install -g yaml-language-server)
+      lspconfig.yamlls.setup({
+        capabilities = capabilities,
+        settings = {
+          yaml = {
+            schemas = {
+              ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+            },
+            validate = true,
+            completion = true,
+          },
+        },
+      })
+    end,
+  },
+  -- JSON schema support
+  {
+    "b0o/schemastore.nvim",
+    lazy = true,
+  },
 }

@@ -241,7 +241,7 @@ return {
 			end, { desc = "[S]earch by [E]xtension" })
 
 			-- Function to search for function definitions
-			vim.keymap.set("n", "<leader>sf", function()
+			vim.keymap.set("n", "<leader>sF", function()
 				builtin.live_grep({
 					prompt_title = "Search Function Definitions",
 					default_text = "def |function |const.*=|class ",
